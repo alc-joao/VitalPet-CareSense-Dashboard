@@ -247,7 +247,13 @@ Monitoramento em tempo real
 
 # 🔗 Repositórios
 
-## Dashboard
+## Dashboard Web
+
+Deploy online:
+
+https://vital-pet-care-sense-dashboard.vercel.app/
+
+GitHub:
 
 https://github.com/alc-joao/VitalPet-CareSense-Dashboard
 
@@ -256,8 +262,6 @@ https://github.com/alc-joao/VitalPet-CareSense-Dashboard
 ## Protótipo IoT / Wokwi
 
 https://github.com/alc-joao/VitalPet-CareSense-IoT
-
----
 
 # 🎥 Vídeo Pitch
 
