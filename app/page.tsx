@@ -23,25 +23,25 @@ import { Sidebar } from '@/components/Sidebar';
 
 type Status = 'SEGURO' | 'ATENCAO' | 'CRITICO';
 
-type SensorData = {
+type ApiData = {
   temperatura: number;
   umidade: number;
   presenca: boolean;
+  atualizadoEm: string;
+};
+
+type SensorData = ApiData & {
   status: Status;
   risco: number;
   mensagem: string;
 };
 
-const getStatus = (
-  temperatura: number,
-  umidade: number,
-  presenca: boolean
-): SensorData => {
+const getStatus = (data: ApiData): SensorData => {
+  const { temperatura, umidade, presenca } = data;
+
   if (temperatura >= 33 && presenca) {
     return {
-      temperatura,
-      umidade,
-      presenca,
+      ...data,
       status: 'CRITICO',
       risco: 2,
       mensagem: 'Pet detectado em ambiente crítico. Ação recomendada.',
@@ -50,9 +50,7 @@ const getStatus = (
 
   if (temperatura >= 30 || umidade < 35) {
     return {
-      temperatura,
-      umidade,
-      presenca,
+      ...data,
       status: 'ATENCAO',
       risco: 1,
       mensagem: 'Ambiente exige atenção. Verifique temperatura ou umidade.',
@@ -60,9 +58,7 @@ const getStatus = (
   }
 
   return {
-    temperatura,
-    umidade,
-    presenca,
+    ...data,
     status: 'SEGURO',
     risco: 0,
     mensagem: 'Ambiente seguro para o pet.',
@@ -70,7 +66,14 @@ const getStatus = (
 };
 
 export default function DashboardPage() {
-  const [data, setData] = useState<SensorData>(getStatus(25, 60, false));
+  const [data, setData] = useState<SensorData>(
+    getStatus({
+      temperatura: 25,
+      umidade: 60,
+      presenca: false,
+      atualizadoEm: new Date().toISOString(),
+    })
+  );
 
   const [history, setHistory] = useState([
     { hora: '08h', temperatura: 24 },
@@ -81,33 +84,49 @@ export default function DashboardPage() {
     { hora: '13h', temperatura: 34 },
   ]);
 
+  const carregarDadosIoT = async () => {
+    const response = await fetch('/api/iot');
+    const apiData: ApiData = await response.json();
+
+    const next = getStatus(apiData);
+    setData(next);
+
+    setHistory((old) => [
+      ...old.slice(-7),
+      {
+        hora: `${new Date().getHours()}h${String(
+          new Date().getMinutes()
+        ).padStart(2, '0')}`,
+        temperatura: next.temperatura,
+      },
+    ]);
+  };
+
+  const simularLeituraIoT = async () => {
+    const temperatura = Number((24 + Math.random() * 12).toFixed(1));
+    const umidade = Math.floor(30 + Math.random() * 45);
+    const presenca = Math.random() > 0.45;
+
+    await fetch('/api/iot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        temperatura,
+        umidade,
+        presenca,
+      }),
+    });
+
+    carregarDadosIoT();
+  };
+
   useEffect(() => {
+    carregarDadosIoT();
+
     const interval = setInterval(() => {
-      setData((current) => {
-        const nextTemp =
-          current.temperatura >= 36 ? 24 : current.temperatura + 1.3;
-
-        const nextHumidity = nextTemp >= 32 ? 33 : 61;
-        const nextPresence = nextTemp >= 33 || Math.random() > 0.55;
-
-        const next = getStatus(
-          Number(nextTemp.toFixed(1)),
-          nextHumidity,
-          nextPresence
-        );
-
-        setHistory((old) => [
-          ...old.slice(-7),
-          {
-            hora: `${new Date().getHours()}h${String(
-              new Date().getMinutes()
-            ).padStart(2, '0')}`,
-            temperatura: next.temperatura,
-          },
-        ]);
-
-        return next;
-      });
+      carregarDadosIoT();
     }, 3000);
 
     return () => clearInterval(interval);
@@ -125,8 +144,8 @@ export default function DashboardPage() {
             <span className="pageLabel">Dashboard IoT</span>
             <h1>Monitoramento Inteligente Pet</h1>
             <p>
-              Painel online para acompanhar temperatura, umidade, presença e
-              nível de risco do ambiente.
+              Painel online integrado com ESP32/Wokwi para acompanhar
+              temperatura, umidade, presença e nível de risco do ambiente.
             </p>
           </div>
 
@@ -201,7 +220,7 @@ export default function DashboardPage() {
                 <h2>Temperatura do ambiente</h2>
               </div>
 
-              <button>Hoje</button>
+              <button onClick={simularLeituraIoT}>Simular ESP32</button>
             </div>
 
             <ResponsiveContainer width="100%" height={320}>
@@ -290,8 +309,10 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <span>Ambiente</span>
-                  <strong>Sala Tutor</strong>
+                  <span>Última leitura</span>
+                  <strong>
+                    {new Date(data.atualizadoEm).toLocaleTimeString('pt-BR')}
+                  </strong>
                 </div>
               </div>
             </article>
