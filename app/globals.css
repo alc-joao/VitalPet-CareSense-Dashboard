@@ -22,18 +22,23 @@ button {
 
 .dashboard {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 270px 1fr;
   background: #eef4ff;
 }
 
 .sidebar {
+  width: 270px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
   background: #ffffff;
   border-right: 1px solid #e4eaf3;
   padding: 28px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow-y: auto;
+  z-index: 100;
 }
 
 .brand {
@@ -41,6 +46,12 @@ button {
   flex-direction: column;
   gap: 8px;
   margin-bottom: 42px;
+}
+
+.sidebarLogo {
+  width: 60px;
+  height: auto;
+  object-fit: contain;
 }
 
 .brandLogo {
@@ -60,7 +71,7 @@ button {
   gap: 10px;
 }
 
-.menu button {
+.menu a {
   border: none;
   background: transparent;
   color: #526174;
@@ -70,12 +81,14 @@ button {
   padding: 15px 16px;
   border-radius: 16px;
   font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   transition: 0.2s ease;
+  text-decoration: none;
 }
 
-.menu button:hover,
-.menu button.active {
+.menu a:hover,
+.menu a.active {
   background: #0a7bff;
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(10, 123, 255, 0.24);
@@ -104,6 +117,8 @@ button {
 }
 
 .content {
+  margin-left: 270px;
+  width: calc(100% - 270px);
   padding: 32px;
 }
 
@@ -160,10 +175,6 @@ button {
   align-items: center;
   gap: 10px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-}
-
-.profile img {
-  object-fit: contain;
 }
 
 .profile strong {
@@ -417,6 +428,70 @@ button {
   text-align: right;
 }
 
+.simplePageContent {
+  padding: 16px;
+}
+
+.simplePageContent h1 {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.simplePageContent > p {
+  color: #8a94a6;
+  margin-bottom: 32px;
+}
+
+.simpleGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.simpleCard,
+.simpleList article {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.simpleCard svg {
+  color: #0a7bff;
+  margin-bottom: 20px;
+}
+
+.simpleCard h2 {
+  margin-bottom: 8px;
+}
+
+.simpleCard p {
+  color: #8a94a6;
+  margin-bottom: 18px;
+}
+
+.simpleCard span,
+.simpleList span {
+  color: #0a7bff;
+  font-weight: 800;
+}
+
+.simpleList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.simpleList article {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.simpleList svg {
+  color: #dc2626;
+}
+
 @media (max-width: 1200px) {
   .cards {
     grid-template-columns: repeat(2, 1fr);
@@ -425,26 +500,35 @@ button {
   .mainGrid {
     grid-template-columns: 1fr;
   }
+
+  .simpleGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 850px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-
   .sidebar {
-    display: none;
+    position: relative;
+    width: 100%;
+    height: auto;
   }
 
   .content {
+    width: 100%;
+    margin-left: 0;
     padding: 22px;
+  }
+
+  .dashboard {
+    display: block;
   }
 
   .topbar {
     flex-direction: column;
   }
 
-  .cards {
+  .cards,
+  .simpleGrid {
     grid-template-columns: 1fr;
   }
 

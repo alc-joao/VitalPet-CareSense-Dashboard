@@ -7,11 +7,8 @@ import {
   Bell,
   Dog,
   Droplets,
-  HomeIcon,
-  LayoutDashboard,
   ShieldCheck,
   Thermometer,
-  Wifi,
 } from 'lucide-react';
 import {
   Area,
@@ -22,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { Sidebar } from '@/components/Sidebar';
 
 type Status = 'SEGURO' | 'ATENCAO' | 'CRITICO';
 
@@ -86,7 +84,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setData((current) => {
-        const nextTemp = current.temperatura >= 36 ? 24 : current.temperatura + 1.3;
+        const nextTemp =
+          current.temperatura >= 36 ? 24 : current.temperatura + 1.3;
+
         const nextHumidity = nextTemp >= 32 ? 33 : 61;
         const nextPresence = nextTemp >= 33 || Math.random() > 0.55;
 
@@ -117,55 +117,7 @@ export default function DashboardPage() {
 
   return (
     <main className="dashboard">
-      <aside className="sidebar">
-        <div>
-          <div className="brand">
-            <Image
-              src="/assets/logo-icon-blue.svg"
-              alt="VitalPet"
-              width={60}
-              height={60}
-              className="sidebarLogo"
-            />
-<span>CareSense IoT</span>
-          </div>
-
-          <nav className="menu">
-            <button className="active">
-              <LayoutDashboard size={18} />
-              Dashboard
-            </button>
-
-            <button>
-              <Thermometer size={18} />
-              Sensores
-            </button>
-
-            <button>
-              <AlertTriangle size={18} />
-              Alertas
-            </button>
-
-            <button>
-              <Dog size={18} />
-              Pets
-            </button>
-
-            <button>
-              <HomeIcon size={18} />
-              Ambientes
-            </button>
-          </nav>
-        </div>
-
-        <div className="deviceCard">
-          <Wifi size={22} />
-          <div>
-            <span>ESP32 Online</span>
-            <strong>vitalpet-esp32-001</strong>
-          </div>
-        </div>
-      </aside>
+      <Sidebar active="dashboard" />
 
       <section className="content">
         <header className="topbar">
