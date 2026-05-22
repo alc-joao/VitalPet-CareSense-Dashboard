@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "author": "João Victor Alcântara",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 20, "left": 10, "attrs": {} },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -114.9,
+      "left": 244.2,
+      "attrs": { "temperature": "47.1", "humidity": "25" }
+    },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir1", "top": 61.6, "left": 146.22, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "ledGreen",
+      "top": -118.8,
+      "left": -82.6,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "resGreen",
+      "top": -44.6,
+      "left": -87.25,
+      "rotate": 270,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRed",
+      "top": -118.8,
+      "left": -34.6,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "resRed",
+      "top": -44.6,
+      "left": -39.25,
+      "rotate": 270,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:3V3", "dht1:VCC", "red", [ "v-39.2", "h263.79" ] ],
+    [ "esp:GND.1", "dht1:GND", "black", [] ],
+    [ "esp:15", "dht1:SDA", "green", [] ],
+    [ "esp:3V3", "pir1:VCC", "red", [ "v-29.6", "h119.79", "v134.4" ] ],
+    [ "esp:GND.2", "pir1:GND", "black", [ "h138.84", "v104.8" ] ],
+    [ "esp:13", "pir1:OUT", "green", [] ],
+    [ "esp:2", "resGreen:1", "green", [ "v-20", "h-168.36", "v-172.8" ] ],
+    [ "resGreen:2", "ledGreen:A", "green", [] ],
+    [ "ledGreen:C", "esp:GND.1", "black", [ "h1.4", "v-8.4", "v259.2", "h168.21" ] ],
+    [ "esp:4", "resRed:1", "green", [ "h14.04", "v-173.05" ] ],
+    [ "resRed:2", "ledRed:A", "green", [] ],
+    [ "ledRed:C", "esp:GND.2", "black", [ "v76.8", "h130.36" ] ]
+  ],
+  "dependencies": {}
+}

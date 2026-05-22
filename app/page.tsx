@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   Bell,
@@ -65,72 +65,107 @@ const getStatus = (data: ApiData): SensorData => {
   };
 };
 
-export default function DashboardPage() {
-  const [data, setData] = useState<SensorData>(
-    getStatus({
-      temperatura: 25,
-      umidade: 60,
-      presenca: false,
-      atualizadoEm: new Date().toISOString(),
-    })
-  );
+const initialData = getStatus({
+  temperatura: 25,
+  umidade: 60,
+  presenca: false,
+  atualizadoEm: '',
+});
 
+export default function DashboardPage() {
+  const [data, setData] = useState<SensorData>(initialData);
+  const [ultimaLeitura, setUltimaLeitura] = useState('--:--:--');
   const [history, setHistory] = useState([
-    { hora: '08h', temperatura: 24 },
-    { hora: '09h', temperatura: 25 },
-    { hora: '10h', temperatura: 26 },
-    { hora: '11h', temperatura: 28 },
-    { hora: '12h', temperatura: 30 },
-    { hora: '13h', temperatura: 34 },
+    { hora: '08h00', temperatura: 24 },
+    { hora: '09h00', temperatura: 25 },
+    { hora: '10h00', temperatura: 26 },
+    { hora: '11h00', temperatura: 28 },
+    { hora: '12h00', temperatura: 30 },
+    { hora: '13h00', temperatura: 34 },
   ]);
 
-  const carregarDadosIoT = async () => {
-    const response = await fetch('/api/iot');
-    const apiData: ApiData = await response.json();
-
+  const atualizarTela = useCallback((apiData: ApiData) => {
     const next = getStatus(apiData);
+
     setData(next);
+
+    if (next.atualizadoEm) {
+      setUltimaLeitura(new Date(next.atualizadoEm).toLocaleTimeString('pt-BR'));
+    }
+
+    const agora = new Date();
 
     setHistory((old) => [
       ...old.slice(-7),
       {
-        hora: `${new Date().getHours()}h${String(
-          new Date().getMinutes()
-        ).padStart(2, '0')}`,
+        hora: `${agora.getHours()}h${String(agora.getMinutes()).padStart(2, '0')}`,
         temperatura: next.temperatura,
       },
     ]);
-  };
+  }, []);
+
+  const carregarDadosIoT = useCallback(async () => {
+    try {
+      const response = await fetch('/api/iot', {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar dados da API IoT');
+      }
+
+      const apiData: ApiData = await response.json();
+
+      atualizarTela(apiData);
+    } catch (error) {
+      console.error('Erro ao carregar IoT:', error);
+    }
+  }, [atualizarTela]);
 
   const simularLeituraIoT = async () => {
-    const temperatura = Number((24 + Math.random() * 12).toFixed(1));
-    const umidade = Math.floor(30 + Math.random() * 45);
-    const presenca = Math.random() > 0.45;
+    try {
+      const temperatura = Number((24 + Math.random() * 12).toFixed(1));
+      const umidade = Math.floor(30 + Math.random() * 45);
+      const presenca = Math.random() > 0.45;
 
-    await fetch('/api/iot', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        temperatura,
-        umidade,
-        presenca,
-      }),
-    });
+      const response = await fetch('/api/iot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          temperatura,
+          umidade,
+          presenca,
+        }),
+      });
 
-    carregarDadosIoT();
+      if (!response.ok) {
+        throw new Error('Erro ao simular dados IoT');
+      }
+
+      const apiData: ApiData = await response.json();
+
+      atualizarTela(apiData);
+    } catch (error) {
+      console.error('Erro ao simular IoT:', error);
+    }
   };
 
   useEffect(() => {
-    carregarDadosIoT();
+    const timeout = setTimeout(() => {
+      carregarDadosIoT();
+    }, 0);
 
     const interval = setInterval(() => {
       carregarDadosIoT();
     }, 3000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [carregarDadosIoT]);
 
   const statusClass = data.status.toLowerCase();
 
@@ -142,7 +177,9 @@ export default function DashboardPage() {
         <header className="topbar">
           <div>
             <span className="pageLabel">Dashboard IoT</span>
+
             <h1>Monitoramento Inteligente Pet</h1>
+
             <p>
               Painel online integrado com ESP32/Wokwi para acompanhar
               temperatura, umidade, presença e nível de risco do ambiente.
@@ -150,7 +187,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="topActions">
-            <button className="iconButton">
+            <button className="iconButton" type="button" aria-label="Notificações">
               <Bell size={20} />
             </button>
 
@@ -197,7 +234,7 @@ export default function DashboardPage() {
             </div>
 
             <span>Presença</span>
-            <strong>{data.presenca ? 'Detectada' : 'Ausente'}</strong>
+            <strong>{data.presenca ? 'Detectada' : 'Não detectada'}</strong>
             <small>Sensor PIR</small>
           </article>
 
@@ -220,44 +257,48 @@ export default function DashboardPage() {
                 <h2>Temperatura do ambiente</h2>
               </div>
 
-              <button onClick={simularLeituraIoT}>Simular ESP32</button>
+              <button type="button" onClick={simularLeituraIoT}>
+                Simular ESP32
+              </button>
             </div>
 
-            <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={history}>
-                <defs>
-                  <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0A7BFF" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#0A7BFF" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+            <div className="chartWrapper">
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart data={history}>
+                  <defs>
+                    <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0A7BFF" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#0A7BFF" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
 
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5EAF3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5EAF3" />
 
-                <XAxis
-                  dataKey="hora"
-                  tick={{ fill: '#8A94A6', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                  <XAxis
+                    dataKey="hora"
+                    tick={{ fill: '#8A94A6', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
 
-                <YAxis
-                  tick={{ fill: '#8A94A6', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                  <YAxis
+                    tick={{ fill: '#8A94A6', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
 
-                <Tooltip />
+                  <Tooltip />
 
-                <Area
-                  type="monotone"
-                  dataKey="temperatura"
-                  stroke="#0A7BFF"
-                  strokeWidth={4}
-                  fill="url(#tempGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                  <Area
+                    type="monotone"
+                    dataKey="temperatura"
+                    stroke="#0A7BFF"
+                    strokeWidth={4}
+                    fill="url(#tempGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </article>
 
           <aside className="rightColumn">
@@ -310,9 +351,7 @@ export default function DashboardPage() {
 
                 <div>
                   <span>Última leitura</span>
-                  <strong>
-                    {new Date(data.atualizadoEm).toLocaleTimeString('pt-BR')}
-                  </strong>
+                  <strong>{ultimaLeitura}</strong>
                 </div>
               </div>
             </article>
