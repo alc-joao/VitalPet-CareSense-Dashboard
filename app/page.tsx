@@ -69,39 +69,54 @@ const initialData = getStatus({
   temperatura: 25,
   umidade: 60,
   presenca: false,
-  atualizadoEm: '',
+  atualizadoEm: new Date().toISOString(),
 });
 
 export default function DashboardPage() {
   const [data, setData] = useState<SensorData>(initialData);
   const [ultimaLeitura, setUltimaLeitura] = useState('--:--:--');
+
   const [history, setHistory] = useState([
-    { hora: '08h00', temperatura: 24 },
-    { hora: '09h00', temperatura: 25 },
-    { hora: '10h00', temperatura: 26 },
-    { hora: '11h00', temperatura: 28 },
-    { hora: '12h00', temperatura: 30 },
-    { hora: '13h00', temperatura: 34 },
+    { hora: '13:50:01', temperatura: 24 },
+    { hora: '13:50:05', temperatura: 25 },
+    { hora: '13:50:09', temperatura: 26 },
+    { hora: '13:50:13', temperatura: 27 },
+    { hora: '13:50:17', temperatura: 29 },
+    { hora: '13:50:21', temperatura: 31 },
   ]);
 
-  const atualizarTela = useCallback((apiData: ApiData) => {
-    const next = getStatus(apiData);
+  const atualizarTela = useCallback((apiData: Partial<ApiData>) => {
+    const safeData: ApiData = {
+      temperatura: Number(apiData?.temperatura ?? 25),
+      umidade: Number(apiData?.umidade ?? 60),
+      presenca: Boolean(apiData?.presenca ?? false),
+      atualizadoEm: apiData?.atualizadoEm ?? new Date().toISOString(),
+    };
+
+    const next = getStatus(safeData);
 
     setData(next);
 
-    if (next.atualizadoEm) {
-      setUltimaLeitura(new Date(next.atualizadoEm).toLocaleTimeString('pt-BR'));
-    }
+    setUltimaLeitura(
+      new Date(next.atualizadoEm).toLocaleTimeString('pt-BR')
+    );
 
     const agora = new Date();
 
-    setHistory((old) => [
-      ...old.slice(-7),
-      {
-        hora: `${agora.getHours()}h${String(agora.getMinutes()).padStart(2, '0')}`,
-        temperatura: next.temperatura,
-      },
-    ]);
+    setHistory((old) => {
+      const segundos = String(agora.getSeconds()).padStart(2, '0');
+
+      return [
+        ...old.slice(-7),
+        {
+          hora: `${agora.getHours()}:${String(agora.getMinutes()).padStart(
+            2,
+            '0'
+          )}:${segundos}`,
+          temperatura: Number((next.temperatura ?? 0).toFixed(1)),
+        },
+      ];
+    });
   }, []);
 
   const carregarDadosIoT = useCallback(async () => {
@@ -114,11 +129,18 @@ export default function DashboardPage() {
         throw new Error('Erro ao buscar dados da API IoT');
       }
 
-      const apiData: ApiData = await response.json();
+      const apiData: Partial<ApiData> = await response.json();
 
       atualizarTela(apiData);
     } catch (error) {
       console.error('Erro ao carregar IoT:', error);
+
+      atualizarTela({
+        temperatura: 25,
+        umidade: 60,
+        presenca: false,
+        atualizadoEm: new Date().toISOString(),
+      });
     }
   }, [atualizarTela]);
 
@@ -137,6 +159,7 @@ export default function DashboardPage() {
           temperatura,
           umidade,
           presenca,
+          atualizadoEm: new Date().toISOString(),
         }),
       });
 
@@ -144,27 +167,27 @@ export default function DashboardPage() {
         throw new Error('Erro ao simular dados IoT');
       }
 
-      const apiData: ApiData = await response.json();
+      const apiData: Partial<ApiData> = await response.json();
 
-      atualizarTela(apiData);
+      atualizarTela({
+        temperatura: apiData.temperatura ?? temperatura,
+        umidade: apiData.umidade ?? umidade,
+        presenca: apiData.presenca ?? presenca,
+        atualizadoEm: apiData.atualizadoEm ?? new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Erro ao simular IoT:', error);
     }
   };
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      carregarDadosIoT();
-    }, 0);
+    carregarDadosIoT();
 
     const interval = setInterval(() => {
       carregarDadosIoT();
     }, 3000);
 
-    return () => {
-      clearTimeout(timeout);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [carregarDadosIoT]);
 
   const statusClass = data.status.toLowerCase();
