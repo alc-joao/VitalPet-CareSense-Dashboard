@@ -137,7 +137,7 @@ O dashboard consome essas informações automaticamente e atualiza os componente
 ## 1. Clonar o repositório
 
 ```bash
-git clone LINK_DO_REPOSITORIO
+git clone https://github.com/alc-joao/VitalPet-CareSense-Dashboard
 ```
 
 ---
@@ -145,7 +145,7 @@ git clone LINK_DO_REPOSITORIO
 ## 2. Entrar na pasta do projeto
 
 ```bash
-cd nome-do-projeto
+cd VitalPet-CareSense-Dashboard
 ```
 
 ---
@@ -268,7 +268,7 @@ https://github.com/alc-joao/VitalPet-CareSense-IoT
 Link do vídeo no YouTube não listado:
 
 ```txt
-Adicionar link aqui
+https://www.youtube.com/watch?v=V01GOaKJrWY
 ```
 
 ---
