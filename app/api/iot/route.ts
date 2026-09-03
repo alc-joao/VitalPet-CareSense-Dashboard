@@ -26,8 +26,5 @@ export async function POST(request: Request) {
     atualizadoEm: new Date().toISOString(),
   };
 
-  return Response.json({
-    mensagem: 'Dados IoT recebidos com sucesso',
-    dados: iotData,
-  });
+  return Response.json(iotData);
 }

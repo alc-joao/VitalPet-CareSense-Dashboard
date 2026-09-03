@@ -19,7 +19,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+
 import { Sidebar } from '@/components/Sidebar';
+import { AIAnalysis } from '@/components/AIAnalysis';
 
 type Status = 'SEGURO' | 'ATENCAO' | 'CRITICO';
 
@@ -53,7 +55,8 @@ const getStatus = (data: ApiData): SensorData => {
       ...data,
       status: 'ATENCAO',
       risco: 1,
-      mensagem: 'Ambiente exige atenção. Verifique temperatura ou umidade.',
+      mensagem:
+        'Ambiente exige atenção. Verifique temperatura ou umidade.',
     };
   }
 
@@ -90,7 +93,8 @@ export default function DashboardPage() {
       temperatura: Number(apiData?.temperatura ?? 25),
       umidade: Number(apiData?.umidade ?? 60),
       presenca: Boolean(apiData?.presenca ?? false),
-      atualizadoEm: apiData?.atualizadoEm ?? new Date().toISOString(),
+      atualizadoEm:
+        apiData?.atualizadoEm ?? new Date().toISOString(),
     };
 
     const next = getStatus(safeData);
@@ -109,11 +113,10 @@ export default function DashboardPage() {
       return [
         ...old.slice(-7),
         {
-          hora: `${agora.getHours()}:${String(agora.getMinutes()).padStart(
-            2,
-            '0'
-          )}:${segundos}`,
-          temperatura: Number((next.temperatura ?? 0).toFixed(1)),
+          hora: `${agora.getHours()}:${String(
+            agora.getMinutes()
+          ).padStart(2, '0')}:${segundos}`,
+          temperatura: Number(next.temperatura.toFixed(1)),
         },
       ];
     });
@@ -144,11 +147,32 @@ export default function DashboardPage() {
     }
   }, [atualizarTela]);
 
+  const cenariosIoT = [
+    {
+      nome: 'SEGURO',
+      temperatura: 25,
+      umidade: 60,
+      presenca: true,
+    },
+    {
+      nome: 'ATENCAO',
+      temperatura: 31,
+      umidade: 38,
+      presenca: true,
+    },
+    {
+      nome: 'CRITICO',
+      temperatura: 35,
+      umidade: 28,
+      presenca: true,
+    },
+  ];
+
+  const [cenarioAtual, setCenarioAtual] = useState(0);
+
   const simularLeituraIoT = async () => {
     try {
-      const temperatura = Number((24 + Math.random() * 12).toFixed(1));
-      const umidade = Math.floor(30 + Math.random() * 45);
-      const presenca = Math.random() > 0.45;
+      const cenario = cenariosIoT[cenarioAtual];
 
       const response = await fetch('/api/iot', {
         method: 'POST',
@@ -156,9 +180,9 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          temperatura,
-          umidade,
-          presenca,
+          temperatura: cenario.temperatura,
+          umidade: cenario.umidade,
+          presenca: cenario.presenca,
           atualizadoEm: new Date().toISOString(),
         }),
       });
@@ -170,11 +194,16 @@ export default function DashboardPage() {
       const apiData: Partial<ApiData> = await response.json();
 
       atualizarTela({
-        temperatura: apiData.temperatura ?? temperatura,
-        umidade: apiData.umidade ?? umidade,
-        presenca: apiData.presenca ?? presenca,
-        atualizadoEm: apiData.atualizadoEm ?? new Date().toISOString(),
+        temperatura: apiData.temperatura ?? cenario.temperatura,
+        umidade: apiData.umidade ?? cenario.umidade,
+        presenca: apiData.presenca ?? cenario.presenca,
+        atualizadoEm:
+          apiData.atualizadoEm ?? new Date().toISOString(),
       });
+
+      setCenarioAtual(
+        (atual) => (atual + 1) % cenariosIoT.length
+      );
     } catch (error) {
       console.error('Erro ao simular IoT:', error);
     }
@@ -199,18 +228,25 @@ export default function DashboardPage() {
       <section className="content">
         <header className="topbar">
           <div>
-            <span className="pageLabel">Dashboard IoT</span>
+            <span className="pageLabel">
+              Dashboard IoT
+            </span>
 
             <h1>Monitoramento Inteligente Pet</h1>
 
             <p>
-              Painel online integrado com ESP32/Wokwi para acompanhar
-              temperatura, umidade, presença e nível de risco do ambiente.
+              Painel online integrado com ESP32/Wokwi para
+              acompanhar temperatura, umidade, presença e nível
+              de risco do ambiente.
             </p>
           </div>
 
           <div className="topActions">
-            <button className="iconButton" type="button" aria-label="Notificações">
+            <button
+              className="iconButton"
+              type="button"
+              aria-label="Notificações"
+            >
               <Bell size={20} />
             </button>
 
@@ -257,11 +293,19 @@ export default function DashboardPage() {
             </div>
 
             <span>Presença</span>
-            <strong>{data.presenca ? 'Detectada' : 'Não detectada'}</strong>
+
+            <strong>
+              {data.presenca
+                ? 'Detectada'
+                : 'Não detectada'}
+            </strong>
+
             <small>Sensor PIR</small>
           </article>
 
-          <article className={`card statusCard ${statusClass}`}>
+          <article
+            className={`card statusCard ${statusClass}`}
+          >
             <div className="cardIcon red">
               <ShieldCheck size={24} />
             </div>
@@ -280,32 +324,62 @@ export default function DashboardPage() {
                 <h2>Temperatura do ambiente</h2>
               </div>
 
-              <button type="button" onClick={simularLeituraIoT}>
-                Simular ESP32
+              <button
+                type="button"
+                onClick={simularLeituraIoT}
+              >
+                Simular cenário
               </button>
             </div>
 
             <div className="chartWrapper">
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer
+                width="100%"
+                height={320}
+              >
                 <AreaChart data={history}>
                   <defs>
-                    <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0A7BFF" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#0A7BFF" stopOpacity={0} />
+                    <linearGradient
+                      id="tempGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#0A7BFF"
+                        stopOpacity={0.35}
+                      />
+
+                      <stop
+                        offset="100%"
+                        stopColor="#0A7BFF"
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
 
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5EAF3" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#E5EAF3"
+                  />
 
                   <XAxis
                     dataKey="hora"
-                    tick={{ fill: '#8A94A6', fontSize: 12 }}
+                    tick={{
+                      fill: '#8A94A6',
+                      fontSize: 12,
+                    }}
                     axisLine={false}
                     tickLine={false}
                   />
 
                   <YAxis
-                    tick={{ fill: '#8A94A6', fontSize: 12 }}
+                    tick={{
+                      fill: '#8A94A6',
+                      fontSize: 12,
+                    }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -325,7 +399,9 @@ export default function DashboardPage() {
           </article>
 
           <aside className="rightColumn">
-            <article className={`alertBox ${statusClass}`}>
+            <article
+              className={`alertBox ${statusClass}`}
+            >
               <AlertTriangle size={28} />
 
               <div>
@@ -343,7 +419,9 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className={`riskCircle ${statusClass}`}>
+              <div
+                className={`riskCircle ${statusClass}`}
+              >
                 <strong>{data.risco}</strong>
               </div>
             </article>
@@ -380,6 +458,8 @@ export default function DashboardPage() {
             </article>
           </aside>
         </section>
+
+        <AIAnalysis />
       </section>
     </main>
   );
