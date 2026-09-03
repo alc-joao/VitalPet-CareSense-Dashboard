@@ -4,7 +4,7 @@
 
 - João Victor Alcântara — RM562707
 - Phillipo Barbosa — RM565399
-- Vitor Madrigrano — RM564191
+- Leonardo Aragaki — RM562944
 - Eduardo Martins — RM562259
 
 ---
