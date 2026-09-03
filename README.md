@@ -11,7 +11,7 @@
 
 # 📌 Descrição do Projeto
 
-O **VitalPet CareSense** é uma solução inteligente para monitoramento de ambientes destinados a pets, integrando **Internet das Coisas (IoT), Dashboard Web e Inteligência Artificial**.
+O **VitalPet CareSense** é uma solução inteligente para monitoramento preventivo de ambientes destinados a pets, integrando **Internet das Coisas (IoT), Dashboard Web e um motor de regras inteligentes**.
 
 A solução utiliza um protótipo IoT baseado em **ESP32**, sensor **DHT22** e sensor **PIR** para coletar informações ambientais e enviá-las para uma API integrada ao dashboard.
 
@@ -22,110 +22,409 @@ O sistema monitora:
 * Presença do pet
 * Nível de risco ambiental
 
-Além do monitoramento em tempo real, o projeto conta com o **CareSense AI**, responsável por analisar os dados coletados considerando também informações do animal monitorado e gerar uma avaliação contextualizada da situação.
+Além do monitoramento, o projeto conta com o **CareSense AI**, componente inteligente responsável por combinar os dados ambientais com características do animal monitorado, identificar fatores de risco e gerar uma recomendação preventiva contextualizada.
 
 ---
 
-# 🚨 Problema
+# 🚨 Problema de Negócio
 
 Pets podem permanecer em ambientes inadequados sem que seus tutores percebam imediatamente.
 
 Temperaturas elevadas, níveis inadequados de umidade e a permanência do animal no ambiente podem representar riscos, principalmente quando o tutor está fora de casa e não consegue acompanhar essas condições.
 
-Somente visualizar dados brutos dos sensores também pode não ser suficiente para que o tutor compreenda rapidamente a gravidade da situação.
+Além disso, apenas apresentar valores brutos como temperatura e umidade nem sempre é suficiente. O mesmo ambiente pode representar níveis diferentes de atenção dependendo das características do animal exposto.
+
+O VitalPet CareSense busca transformar esses dados em uma informação mais compreensível e contextualizada para apoiar ações preventivas.
 
 ---
 
 # ✅ Solução Proposta
 
-O **VitalPet CareSense** combina IoT, desenvolvimento web e Inteligência Artificial para transformar dados ambientais em informações úteis para o tutor.
+O **VitalPet CareSense** combina sensores IoT, desenvolvimento web e análise inteligente para transformar dados ambientais em informações úteis.
 
 A solução:
 
 * Monitora temperatura
 * Monitora umidade
-* Detecta presença do pet
+* Detecta presença
 * Recebe dados enviados pelo ESP32
-* Classifica automaticamente o nível de risco
-* Exibe informações em um dashboard web
-* Mantém histórico das leituras
-* Permite cadastrar informações do pet
-* Utiliza IA para analisar o contexto ambiental
-* Gera orientações contextualizadas por meio do CareSense AI
+* Exibe as informações em um dashboard
+* Mantém um histórico temporário das leituras na interface
+* Classifica o estado do ambiente
+* Combina dados ambientais com características do pet
+* Identifica fatores adicionais de vulnerabilidade
+* Calcula uma pontuação de risco
+* Classifica o risco inteligente
+* Explica os fatores identificados
+* Gera recomendações preventivas
 
 ---
 
 # 🧠 CareSense AI
 
-O **CareSense AI** é a camada de Inteligência Artificial integrada ao dashboard do VitalPet.
+O **CareSense AI v1** é o componente de análise inteligente do VitalPet CareSense.
 
-Enquanto os sensores fornecem informações objetivas sobre o ambiente, a IA utiliza esses dados juntamente com informações cadastradas sobre o animal para produzir uma análise mais contextualizada.
+Na versão atual do protótipo, foi implementado como um **motor de regras inteligentes com análise contextual**.
 
-A análise pode considerar informações como:
+O componente recebe informações ambientais coletadas pelo sistema IoT e características do perfil do pet para calcular uma pontuação de risco.
 
-* Temperatura atual
-* Umidade atual
-* Presença detectada
-* Nível de risco identificado
-* Espécie do animal
-* Raça
-* Idade
-* Peso
-* Informações adicionais cadastradas no perfil do pet
+A análise retorna:
 
-A partir desse contexto, o CareSense AI gera uma avaliação textual para auxiliar o tutor na interpretação da situação.
+* Pet analisado
+* Nível de risco
+* Pontuação
+* Justificativa
+* Fatores identificados
+* Recomendação preventiva
+* Data e horário da análise
 
-> O CareSense AI possui finalidade informativa e preventiva e não substitui avaliação ou orientação de um médico-veterinário.
+Os níveis possíveis são:
+
+```txt
+BAIXO
+MODERADO
+ALTO
+CRITICO
+```
 
 ---
 
-# 🏗️ Arquitetura da Solução
+# 🎯 Justificativa da Abordagem de IA
+
+A abordagem escolhida para o **CareSense AI v1** foi um **motor de regras inteligentes**.
+
+Essa abordagem foi adotada porque os dados utilizados nesta etapa são predominantemente estruturados e os fatores de risco analisados possuem regras que podem ser avaliadas de maneira objetiva.
+
+Além disso, para uma aplicação relacionada ao bem-estar animal, é importante que o resultado seja:
+
+* Previsível
+* Rastreável
+* Explicável
+* Reproduzível
+
+Em vez de retornar apenas uma classificação, o CareSense AI também informa quais fatores contribuíram para o resultado.
+
+Por exemplo, uma análise pode identificar simultaneamente:
+
+* Temperatura elevada
+* Umidade inadequada
+* Presença do pet no ambiente
+* Raça com maior sensibilidade ao calor
+* Faixa etária que exige maior atenção
+
+Cada condição pode contribuir para a pontuação utilizada na classificação final.
+
+Essa abordagem permite demonstrar de forma transparente como o sistema chegou ao nível de risco apresentado.
+
+---
+
+# ⚙️ Funcionamento do CareSense AI
+
+O motor inteligente recebe uma estrutura semelhante a:
+
+```json
+{
+  "temperatura": 35,
+  "umidade": 28,
+  "presenca": true,
+  "pet": {
+    "nome": "Thor",
+    "especie": "Cachorro",
+    "raca": "Bulldog Francês",
+    "idade": 8,
+    "peso": 13
+  }
+}
+```
+
+A API analisa as informações e atribui pontuações aos fatores identificados.
+
+## Regras ambientais
+
+### Temperatura
+
+* A partir de 29°C: aumenta a atenção
+* A partir de 32°C: risco ambiental maior
+* A partir de 35°C: condição de temperatura extremamente elevada
+
+### Umidade
+
+* Abaixo de 40%: aumenta a pontuação de risco
+* Abaixo de 30%: condição de umidade muito baixa
+
+### Presença
+
+Quando há presença detectada, o sistema considera que o pet pode estar exposto às condições ambientais identificadas.
+
+## Contexto do pet
+
+Na versão atual, duas características são utilizadas diretamente para personalizar a pontuação:
+
+### Raça
+
+O protótipo considera algumas raças braquicefálicas como fator adicional de atenção ao calor, como:
+
+* Bulldog Francês
+* Bulldog Inglês
+* Pug
+* Shih Tzu
+* Boxer
+
+### Idade
+
+Animais com **8 anos ou mais** recebem um fator adicional de atenção na análise.
+
+---
+
+# 🚦 Classificação Inteligente
+
+Após a soma dos fatores, o CareSense AI classifica o resultado.
 
 ```txt
-┌──────────────────────────────┐
-│        ESP32 / Wokwi         │
-│                              │
-│   DHT22          PIR         │
-│ Temperatura     Presença     │
-│ Umidade                      │
-└──────────────┬───────────────┘
-               │
-               │ HTTP / JSON
-               ▼
-┌──────────────────────────────┐
-│          API REST            │
-│          /api/iot            │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│   VitalPet CareSense         │
-│        Dashboard             │
-│                              │
-│ • Dados ambientais           │
-│ • Nível de risco             │
-│ • Histórico                  │
-│ • Informações do pet         │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│        CareSense AI          │
-│                              │
-│ Análise contextualizada dos  │
-│ dados ambientais e do pet    │
-└──────────────────────────────┘
+Pontuação 0–2  → BAIXO
+Pontuação 3–4  → MODERADO
+Pontuação 5–7  → ALTO
+Pontuação 8+   → CRITICO
 ```
+
+Além da classificação, o sistema retorna uma justificativa e uma recomendação correspondente ao cenário identificado.
+
+---
+
+# 🐶 Personalização da Análise
+
+Um dos objetivos do CareSense AI é demonstrar que apenas os dados ambientais não precisam ser considerados isoladamente.
+
+Na demonstração atual, o sistema utiliza o seguinte perfil:
+
+```txt
+Nome: Thor
+Espécie: Cachorro
+Raça: Bulldog Francês
+Idade: 8 anos
+Peso: 13 kg
+```
+
+Os campos de espécie e peso fazem parte da estrutura do perfil enviada ao componente inteligente e podem ser utilizados em futuras evoluções.
+
+Na versão atual do motor, **raça e idade são os atributos do perfil que efetivamente influenciam a pontuação de risco**.
+
+---
+
+# 📊 Dados Utilizados
+
+| Dado         | Origem               | Estrutura | Utilização                                 |
+| ------------ | -------------------- | --------- | ------------------------------------------ |
+| Temperatura  | DHT22 / ESP32        | Número    | Avaliação das condições térmicas           |
+| Umidade      | DHT22 / ESP32        | Número    | Avaliação das condições ambientais         |
+| Presença     | PIR / ESP32          | Booleano  | Identificação de possível exposição do pet |
+| Nome         | Perfil demonstrativo | Texto     | Identificação do animal analisado          |
+| Espécie      | Perfil demonstrativo | Texto     | Informação contextual disponível           |
+| Raça         | Perfil demonstrativo | Texto     | Personalização da análise de risco         |
+| Idade        | Perfil demonstrativo | Número    | Personalização da análise de risco         |
+| Peso         | Perfil demonstrativo | Número    | Informação contextual disponível           |
+| Pontuação    | CareSense AI         | Número    | Determinação do nível de risco             |
+| Fatores      | CareSense AI         | Lista     | Explicação do resultado                    |
+| Recomendação | CareSense AI         | Texto     | Orientação preventiva                      |
+
+---
+
+# 💙 Valor Gerado
+
+## Para o tutor
+
+O tutor não precisa interpretar apenas números provenientes dos sensores.
+
+O CareSense AI transforma as informações em:
+
+* Classificação de risco
+* Explicação dos fatores encontrados
+* Recomendação preventiva
+
+Isso facilita a compreensão da situação e pode ajudar o tutor a agir mais rapidamente.
+
+## Para o pet
+
+A solução busca contribuir para a prevenção de exposição prolongada a condições ambientais potencialmente inadequadas.
+
+A análise contextual permite considerar não somente o ambiente, mas também características do animal.
+
+## Para clínicas veterinárias
+
+Como evolução da solução, o histórico ambiental e as análises realizadas podem servir como informação complementar para o acompanhamento do animal.
+
+A integração futura com dados clínicos pode permitir que profissionais tenham contexto adicional sobre situações ambientais às quais o pet esteve exposto.
+
+> A versão atual do protótipo não realiza diagnóstico veterinário e não substitui avaliação profissional.
+
+---
+
+# 🏗️ Arquitetura Atual do Protótipo
+
+```txt
+┌───────────────────────────────┐
+│         ESP32 / Wokwi         │
+│                               │
+│   DHT22             PIR       │
+│ Temperatura       Presença    │
+│ Umidade                       │
+└───────────────┬───────────────┘
+                │
+                │ HTTP / JSON
+                ▼
+┌───────────────────────────────┐
+│          API /api/iot         │
+│                               │
+│ Última leitura armazenada     │
+│ temporariamente em memória    │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│     Dashboard VitalPet        │
+│                               │
+│ • Temperatura                 │
+│ • Umidade                     │
+│ • Presença                    │
+│ • Status                      │
+│ • Gráfico temporário          │
+└───────────────┬───────────────┘
+                │
+                │ Dados IoT +
+                │ perfil demonstrativo
+                ▼
+┌───────────────────────────────┐
+│          API /api/ia          │
+│                               │
+│       CareSense AI v1         │
+│ Motor de regras inteligentes  │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│       Resultado da análise    │
+│                               │
+│ • Nível                       │
+│ • Pontuação                   │
+│ • Fatores                     │
+│ • Justificativa               │
+│ • Recomendação                │
+└───────────────────────────────┘
+```
+
+---
+
+# 🔄 Fluxo de Dados
+
+```txt
+Sensores
+   ↓
+ESP32
+   ↓
+HTTP / JSON
+   ↓
+/api/iot
+   ↓
+Dashboard
+   ↓
+Dados ambientais
+   +
+Perfil demonstrativo do pet
+   ↓
+/api/ia
+   ↓
+CareSense AI
+   ↓
+Pontuação de risco
+   ↓
+Classificação
+   ↓
+Justificativa + recomendação
+   ↓
+Dashboard
+   ↓
+Usuário
+```
+
+O Dashboard consulta os dados IoT periodicamente e atualiza as informações apresentadas na interface.
+
+O componente CareSense AI também utiliza as leituras mais recentes para recalcular a análise do ambiente.
+
+---
+
+# 💾 Persistência de Dados
+
+Na versão atual do protótipo, **não existe banco de dados persistente integrado ao Dashboard**.
+
+A API `/api/iot` mantém a última leitura temporariamente em memória durante a execução da aplicação.
+
+O histórico apresentado no gráfico também é mantido temporariamente no estado da interface.
+
+Os pets exibidos na seção de animais e o perfil utilizado pelo CareSense AI são dados demonstrativos utilizados para validar o conceito da solução.
+
+Essa decisão permite concentrar a Sprint na validação do fluxo:
+
+```txt
+IoT → Aplicação → Análise Inteligente → Recomendação
+```
+
+---
+
+# 🚀 Evolução da Arquitetura
+
+Em uma evolução do VitalPet CareSense, uma camada persistente poderá armazenar:
+
+* Perfis dos pets
+* Histórico das leituras ambientais
+* Alertas
+* Histórico das análises do CareSense AI
+* Consultas
+* Vacinas
+* Medicamentos
+* Dados clínicos autorizados
+* Informações relevantes para acompanhamento veterinário
+
+A arquitetura poderá evoluir para:
+
+```txt
+ESP32 / Sensores
+       ↓
+    API IoT
+       ↓
+┌──────────────────────┐
+│   Banco de Dados     │
+│                      │
+│ • Pets               │
+│ • Leituras           │
+│ • Alertas            │
+│ • Histórico          │
+│ • Dados clínicos     │
+└──────────┬───────────┘
+           │
+           ▼
+      Aplicação
+           │
+           ▼
+     CareSense AI
+           │
+           ▼
+ Análise contextual
+           │
+           ▼
+ Tutor / Clínica
+```
+
+Essa evolução permitiria análises utilizando não apenas a leitura atual, mas também informações históricas e clínicas do animal.
 
 ---
 
 # 🛠️ Tecnologias Utilizadas
 
-## Dashboard Web
+## Dashboard
 
 * Next.js
-* TypeScript
 * React
+* TypeScript
 * Recharts
 * Lucide React
 * CSS
@@ -139,11 +438,14 @@ A partir desse contexto, o CareSense AI gera uma avaliação textual para auxili
 * Arduino Framework
 * Wokwi Simulator
 
-## Inteligência Artificial
+## Inteligência
 
-* CareSense AI
-* Integração de IA via API
-* Engenharia de prompt com contexto ambiental e informações do pet
+* CareSense AI v1
+* Motor de regras inteligentes
+* Sistema de pontuação
+* Análise contextual
+* Classificação de risco
+* Recomendações preventivas
 
 ## Comunicação
 
@@ -157,7 +459,7 @@ A partir desse contexto, o CareSense AI gera uma avaliação textual para auxili
 
 ---
 
-# 🌡️ Sensores Utilizados
+# 🌡️ Sensores
 
 ## DHT22
 
@@ -166,49 +468,48 @@ Responsável pela coleta de:
 * Temperatura
 * Umidade
 
-Essas informações são utilizadas pelo sistema para avaliar as condições ambientais onde o pet se encontra.
-
 ## PIR
 
 Responsável pela detecção de presença no ambiente.
 
-A presença permite que o sistema considere se o animal está potencialmente exposto às condições ambientais identificadas pelos sensores.
+A combinação dessas informações permite avaliar se existem condições ambientais que exigem atenção.
 
 ---
 
 # 📊 Funcionalidades
 
-O VitalPet CareSense possui:
-
 * Dashboard de monitoramento
-* Recebimento de dados do ESP32
+* Integração com ESP32
 * Monitoramento de temperatura
 * Monitoramento de umidade
 * Detecção de presença
-* Classificação automática do nível de risco
-* Histórico gráfico das leituras
 * API REST para comunicação IoT
-* Cadastro de informações do pet
-* Integração com Inteligência Artificial
-* Análise contextualizada através do CareSense AI
-* Interface responsiva
+* Atualização periódica das leituras
+* Simulação de cenários
+* Histórico gráfico temporário
+* Status ambiental
+* CareSense AI
+* Motor de regras inteligentes
+* Pontuação de risco
+* Personalização por características do pet
+* Classificação BAIXO / MODERADO / ALTO / CRITICO
+* Explicação dos fatores identificados
+* Recomendações preventivas
 * Deploy web
 
 ---
 
-# 🔌 Integração IoT
+# 🔌 API IoT
 
-O Dashboard disponibiliza a rota:
+A rota:
 
 ```txt
 /api/iot
 ```
 
-Essa rota é responsável pelo recebimento dos dados enviados pelo dispositivo IoT.
+é responsável pelo recebimento e disponibilização das informações ambientais.
 
-O ESP32 realiza requisições HTTP enviando os valores coletados pelos sensores.
-
-## Exemplo de dados
+## Exemplo
 
 ```json
 {
@@ -218,47 +519,98 @@ O ESP32 realiza requisições HTTP enviando os valores coletados pelos sensores.
 }
 ```
 
-O Dashboard utiliza essas informações para atualizar o monitoramento e determinar o estado atual do ambiente.
+## GET
+
+Retorna a última leitura disponível.
+
+## POST
+
+Recebe uma nova leitura e atualiza os dados temporários utilizados pelo Dashboard.
 
 ---
 
-# 🚦 Classificação de Risco
+# 🧠 API CareSense AI
 
-Com base nos dados recebidos pelos sensores, o sistema determina o nível de risco ambiental.
-
-A classificação permite que o tutor identifique rapidamente se as condições atuais exigem atenção.
-
-Os dados de risco também são utilizados como parte do contexto enviado ao **CareSense AI**, permitindo uma interpretação mais completa da situação.
-
----
-
-# 🔄 Fluxo de Funcionamento
+A rota:
 
 ```txt
-1. Sensores realizam as leituras
-              ↓
-2. ESP32 processa os dados
-              ↓
-3. ESP32 envia JSON via HTTP
-              ↓
-4. API /api/iot recebe os dados
-              ↓
-5. Dashboard atualiza o monitoramento
-              ↓
-6. Sistema determina o nível de risco
-              ↓
-7. Dados ambientais + perfil do pet
-   são utilizados pelo CareSense AI
-              ↓
-8. IA gera análise contextualizada
-              ↓
-9. Tutor visualiza informações e
-   orientações no Dashboard
+/api/ia
+```
+
+recebe os dados ambientais e o perfil do pet através de uma requisição `POST`.
+
+Exemplo:
+
+```json
+{
+  "temperatura": 35,
+  "umidade": 28,
+  "presenca": true,
+  "pet": {
+    "nome": "Thor",
+    "especie": "Cachorro",
+    "raca": "Bulldog Francês",
+    "idade": 8,
+    "peso": 13
+  }
+}
+```
+
+Exemplo conceitual de resposta:
+
+```json
+{
+  "pet": "Thor",
+  "nivel": "CRITICO",
+  "pontuacao": 10,
+  "justificativa": "A análise identificou fatores de risco no ambiente e no perfil do animal.",
+  "recomendacao": "Retire o pet do ambiente de risco e acompanhe possíveis sinais de desconforto.",
+  "fatores": [
+    "temperatura extremamente elevada",
+    "umidade muito baixa",
+    "pet presente no ambiente",
+    "raça com maior sensibilidade ao calor",
+    "animal em faixa etária de maior atenção"
+  ],
+  "modelo": "VitalPet CareSense AI v1"
+}
 ```
 
 ---
 
-# ▶️ Como Rodar o Projeto
+# 🧪 Cenários de Demonstração
+
+O Dashboard possui cenários que permitem demonstrar diferentes condições durante a apresentação.
+
+## Cenário Seguro
+
+```txt
+Temperatura: 25°C
+Umidade: 60%
+Presença: Sim
+```
+
+## Cenário de Atenção
+
+```txt
+Temperatura: 31°C
+Umidade: 38%
+Presença: Sim
+```
+
+## Cenário Crítico
+
+```txt
+Temperatura: 35°C
+Umidade: 28%
+Presença: Sim
+```
+
+Ao alterar o cenário, o Dashboard atualiza as informações e o CareSense AI realiza uma nova análise utilizando os dados mais recentes.
+
+---
+
+# ▶️ Como Rodar o Dashboard
 
 ## 1. Clonar o repositório
 
@@ -278,19 +630,13 @@ cd VitalPet-CareSense-Dashboard
 npm install
 ```
 
-## 4. Configurar variáveis de ambiente
-
-Caso a integração com Inteligência Artificial utilize uma chave de API, configure o arquivo de variáveis de ambiente conforme a implementação do projeto.
-
-Nunca publique chaves privadas ou tokens diretamente no GitHub.
-
-## 5. Executar em desenvolvimento
+## 4. Executar em desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-## 6. Abrir no navegador
+## 5. Abrir
 
 ```txt
 http://localhost:3000
@@ -302,77 +648,110 @@ http://localhost:3000
 
 ## GET
 
-Com o projeto em execução, acesse:
-
 ```txt
 http://localhost:3000/api/iot
 ```
 
 ## POST
 
-Também é possível simular manualmente uma leitura utilizando:
-
 ```bash
 curl -X POST http://localhost:3000/api/iot \
 -H "Content-Type: application/json" \
--d '{"temperatura":32,"umidade":40,"presenca":true}'
+-d '{"temperatura":35,"umidade":28,"presenca":true}'
 ```
 
-Após o envio, os novos dados podem ser visualizados no Dashboard.
+O Dashboard utiliza a nova leitura e atualiza o monitoramento.
 
 ---
 
-# 🤖 Fluxo do CareSense AI
+# ✅ Validação Técnica
 
-O fluxo da análise inteligente pode ser representado da seguinte maneira:
+O Dashboard foi validado através do build de produção:
+
+```bash
+npm run build
+```
+
+A compilação inclui as rotas:
 
 ```txt
-Dados IoT
-   +
-Perfil do Pet
-   +
-Nível de Risco
-      ↓
-Construção do contexto
-      ↓
-CareSense AI
-      ↓
-Análise contextualizada
-      ↓
-Orientação exibida ao tutor
+/
+/alertas
+/ambientes
+/api/ia
+/api/iot
+/pets
+/sensores
 ```
 
-Essa abordagem permite que a aplicação vá além da simples apresentação de números coletados pelos sensores.
+O protótipo IoT também foi validado utilizando PlatformIO:
+
+```bash
+pio run
+```
 
 ---
 
-# 📈 Resultado da Sprint
+# 📈 Resultado da Sprint 3
 
-Nesta etapa, o projeto consegue:
+Nesta etapa, o VitalPet CareSense consegue:
 
-✅ Coletar dados através do protótipo IoT
+✅ Monitorar dados ambientais
+
+✅ Receber informações do protótipo IoT
 
 ✅ Monitorar temperatura e umidade
 
 ✅ Detectar presença
 
-✅ Enviar dados do ESP32 para a API
-
-✅ Receber informações através da API REST
-
 ✅ Atualizar o Dashboard
 
-✅ Classificar o nível de risco ambiental
+✅ Simular diferentes cenários ambientais
 
-✅ Exibir histórico das leituras
+✅ Exibir histórico temporário
 
-✅ Trabalhar com informações do pet
+✅ Classificar o estado do ambiente
 
-✅ Integrar Inteligência Artificial ao Dashboard
+✅ Combinar dados ambientais com características do pet
 
-✅ Gerar análises através do CareSense AI
+✅ Executar um motor de regras inteligentes
 
-✅ Demonstrar o fluxo completo IoT → API → Dashboard → IA
+✅ Personalizar o risco utilizando raça e idade
+
+✅ Calcular uma pontuação
+
+✅ Classificar o risco inteligente
+
+✅ Explicar os fatores encontrados
+
+✅ Gerar recomendações preventivas
+
+✅ Demonstrar o fluxo IoT → Dashboard → CareSense AI
+
+---
+
+# ⚠️ Limitações do Protótipo
+
+A versão atual foi desenvolvida para validação do conceito da Sprint.
+
+Entre as limitações atuais estão:
+
+* Ausência de banco de dados persistente no Dashboard
+* Perfil utilizado pela IA definido de forma demonstrativa
+* Pets exibidos na interface utilizando dados demonstrativos
+* Histórico gráfico mantido temporariamente no navegador
+* Conjunto de regras limitado aos fatores implementados nesta versão
+* Ausência de integração com prontuário clínico nesta etapa
+
+Esses pontos fazem parte das possibilidades de evolução da solução.
+
+---
+
+# 🔒 Responsabilidade
+
+O **VitalPet CareSense** é um protótipo acadêmico com finalidade preventiva e demonstrativa.
+
+As recomendações fornecidas pelo CareSense AI não representam diagnóstico veterinário e **não substituem avaliação ou orientação de um médico-veterinário**.
 
 ---
 
@@ -382,13 +761,9 @@ Nesta etapa, o projeto consegue:
 
 ![Dashboard VitalPet CareSense](image.png)
 
----
-
 ## API IoT
 
 ![API IoT](image-1.png)
-
----
 
 ## Protótipo IoT / Wokwi
 
@@ -398,7 +773,7 @@ Nesta etapa, o projeto consegue:
 
 ---
 
-# 🔗 Projeto
+# 🔗 Repositórios e Deploy
 
 ## Dashboard Web
 
@@ -406,7 +781,7 @@ Nesta etapa, o projeto consegue:
 
 https://vital-pet-care-sense-dashboard.vercel.app/
 
-### Repositório
+### GitHub
 
 https://github.com/alc-joao/VitalPet-CareSense-Dashboard
 
@@ -414,38 +789,38 @@ https://github.com/alc-joao/VitalPet-CareSense-Dashboard
 
 ## IoT / ESP32 / Wokwi
 
-### Repositório
+### GitHub
 
 https://github.com/alc-joao/VitalPet-CareSense-IoT
 
 ---
 
-# 🎥 Vídeo Pitch
+# 🎥 Vídeo Demonstrativo
 
-Vídeo demonstrativo do projeto:
+O vídeo demonstrativo da Sprint 3 será disponibilizado após a finalização da validação do projeto.
 
 **Link:** será adicionado antes da entrega final.
 
 ---
 
-# 📦 Entrega
+# 📦 Entrega Final
 
 A solução é composta por:
 
 * Código-fonte do Dashboard
-* Código-fonte do ESP32
-* Protótipo IoT
+* Código-fonte do protótipo IoT
+* ESP32
 * Sensores DHT22 e PIR
 * API REST
 * Dashboard web
-* Integração com CareSense AI
-* Histórico de monitoramento
-* Classificação de risco
-* Evidências do funcionamento
-* Documentação
+* CareSense AI v1
+* Motor de regras inteligentes
+* Sistema de classificação de risco
+* Documentação técnica
+* Evidências
 * Deploy online
-* Vídeo demonstrativo
 * Repositórios GitHub
+* Vídeo demonstrativo
 
 ---
 
@@ -453,4 +828,4 @@ A solução é composta por:
 
 Projeto acadêmico desenvolvido para o **Challenge Clyvo — FIAP**.
 
-A proposta do VitalPet CareSense é demonstrar como **IoT, desenvolvimento web e Inteligência Artificial** podem trabalhar em conjunto para criar uma solução de monitoramento preventivo voltada ao bem-estar animal.
+O VitalPet CareSense demonstra como **IoT, desenvolvimento web e análise inteligente baseada em regras** podem trabalhar em conjunto para criar uma solução de monitoramento preventivo voltada ao bem-estar animal.
