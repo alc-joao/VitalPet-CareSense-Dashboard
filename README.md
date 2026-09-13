@@ -797,9 +797,9 @@ https://github.com/alc-joao/VitalPet-CareSense-IoT
 
 # 🎥 Vídeo Demonstrativo
 
-O vídeo demonstrativo da Sprint 3 será disponibilizado após a finalização da validação do projeto.
+O vídeo demonstrativo apresenta o funcionamento do VitalPet CareSense, incluindo o monitoramento IoT, Dashboard e CareSense AI.
 
-**Link:** será adicionado antes da entrega final.
+**Link:** https://youtu.be/0aA5NGLn9Jo
 
 ---
 
