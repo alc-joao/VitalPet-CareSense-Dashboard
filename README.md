@@ -60,9 +60,65 @@ A solução:
 
 ---
 
+# 🆕 Sprint 4 — Implementação e Validação da IA
+
+Nesta Sprint, a solução CareSense AI foi aprimorada e validada por meio de testes automatizados e testes de integração entre as APIs.
+
+## Melhorias implementadas
+
+- Atualização do motor de análise para CareSense AI v2.
+- Classificação ambiental CRITICO para temperatura a partir de 35°C, mesmo sem presença, ou a partir de 33°C com presença detectada.
+- Ajuste da pontuação contextual: raça e idade acrescentam pontos quando a temperatura é igual ou superior a 29°C.
+- Validação dos dados ambientais e do perfil do pet recebidos pela API.
+- Retorno HTTP 400 para entradas inválidas.
+- Testes de classificação, validação de entradas e integração IoT + IA.
+- Verificação da análise inteligente na interface do Dashboard.
+- Compilação de produção com Next.js concluída com sucesso.
+
+## Executar os testes automatizados
+
+Com o servidor local iniciado em outro Terminal:
+
+```bash
+npm run dev
+```
+
+Execute:
+
+```bash
+python3 -m unittest discover -s tests -p "test_*.py" -v
+```
+
+Os testes utilizam a API local em `http://localhost:3000`.
+
+O teste de integração altera temporariamente a última leitura IoT e a restaura ao finalizar. Evite executá-lo simultaneamente com um simulador enviando leituras.
+
+## Resultados da validação
+
+- 4 cenários de classificação de risco aprovados.
+- 7 cenários de validação de entrada aprovados na verificação manual.
+- 3 métodos de teste automatizado aprovados, abrangendo classificação, validação e integração.
+- Integração local entre `/api/iot` e `/api/ia` validada.
+- Dashboard e painel CareSense AI verificados visualmente.
+- Build de produção concluído sem erros.
+
+## Limitações
+
+O protótipo utiliza regras explícitas para classificação e recomendação. Não utiliza LLM ou modelo de Machine Learning treinado.
+
+A API IoT mantém a última leitura em memória, sem persistência em banco de dados. Em ambientes serverless, como a Vercel, não há garantia de compartilhamento dessa leitura entre instâncias.
+
+O perfil Thor é demonstrativo e a solução não realiza diagnóstico veterinário.
+
+## Vídeo da Sprint 4
+
+A apresentação final, com aproximadamente cinco minutos, será publicada no YouTube em modo não listado. O link será incluído após a gravação.
+
+---
+
 # 🧠 CareSense AI
 
-O **CareSense AI v1** é o componente de análise inteligente do VitalPet CareSense.
+O **CareSense AI v2** é o componente de análise inteligente do VitalPet CareSense.
 
 Na versão atual do protótipo, foi implementado como um **motor de regras inteligentes com análise contextual**.
 
@@ -91,7 +147,7 @@ CRITICO
 
 # 🎯 Justificativa da Abordagem de IA
 
-A abordagem escolhida para o **CareSense AI v1** foi um **motor de regras inteligentes**.
+A abordagem escolhida para o **CareSense AI v2** foi um **motor de regras inteligentes**.
 
 Essa abordagem foi adotada porque os dados utilizados nesta etapa são predominantemente estruturados e os fatores de risco analisados possuem regras que podem ser avaliadas de maneira objetiva.
 
@@ -296,7 +352,7 @@ A integração futura com dados clínicos pode permitir que profissionais tenham
 ┌───────────────────────────────┐
 │          API /api/ia          │
 │                               │
-│       CareSense AI v1         │
+│       CareSense AI v2         │
 │ Motor de regras inteligentes  │
 └───────────────┬───────────────┘
                 │
@@ -440,7 +496,7 @@ Essa evolução permitiria análises utilizando não apenas a leitura atual, mas
 
 ## Inteligência
 
-* CareSense AI v1
+* CareSense AI v2
 * Motor de regras inteligentes
 * Sistema de pontuação
 * Análise contextual
@@ -572,7 +628,7 @@ Exemplo conceitual de resposta:
     "raça com maior sensibilidade ao calor",
     "animal em faixa etária de maior atenção"
   ],
-  "modelo": "VitalPet CareSense AI v1"
+  "modelo": "VitalPet CareSense AI v2"
 }
 ```
 
@@ -813,7 +869,7 @@ A solução é composta por:
 * Sensores DHT22 e PIR
 * API REST
 * Dashboard web
-* CareSense AI v1
+* CareSense AI v2
 * Motor de regras inteligentes
 * Sistema de classificação de risco
 * Documentação técnica

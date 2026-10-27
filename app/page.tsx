@@ -41,12 +41,14 @@ type SensorData = ApiData & {
 const getStatus = (data: ApiData): SensorData => {
   const { temperatura, umidade, presenca } = data;
 
-  if (temperatura >= 33 && presenca) {
+  if (temperatura >= 35 || (temperatura >= 33 && presenca)) {
     return {
       ...data,
       status: 'CRITICO',
       risco: 2,
-      mensagem: 'Pet detectado em ambiente crítico. Ação recomendada.',
+      mensagem: presenca
+        ? 'Pet detectado em ambiente crítico. Ação recomendada.'
+        : 'Temperatura extremamente alta. Ambiente crítico, mesmo sem presença detectada.',
     };
   }
 

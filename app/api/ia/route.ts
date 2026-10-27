@@ -14,12 +14,64 @@ type AnaliseRequest = {
 type NivelRisco = 'BAIXO' | 'MODERADO' | 'ALTO' | 'CRITICO';
 
 export async function POST(request: Request) {
-  const body: AnaliseRequest = await request.json();
+  let body: AnaliseRequest;
 
-  const temperatura = Number(body.temperatura);
-  const umidade = Number(body.umidade);
-  const presenca = Boolean(body.presenca);
-  const pet = body.pet;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json(
+      { erro: 'JSON inválido.' },
+      { status: 400 }
+    );
+  }
+
+  if (!body || typeof body !== 'object' || !body.pet) {
+    return Response.json(
+      { erro: 'Dados da análise ou perfil do pet ausentes.' },
+      { status: 400 }
+    );
+  }
+
+  const { temperatura, umidade, presenca, pet } = body;
+
+  if (
+    typeof temperatura !== 'number' ||
+    !Number.isFinite(temperatura) ||
+    temperatura < -20 ||
+    temperatura > 60 ||
+    typeof umidade !== 'number' ||
+    !Number.isFinite(umidade) ||
+    umidade < 0 ||
+    umidade > 100 ||
+    typeof presenca !== 'boolean'
+  ) {
+    return Response.json(
+      { erro: 'Dados ambientais inválidos.' },
+      { status: 400 }
+    );
+  }
+
+  if (
+    typeof pet.nome !== 'string' ||
+    !pet.nome.trim() ||
+    typeof pet.especie !== 'string' ||
+    !pet.especie.trim() ||
+    typeof pet.raca !== 'string' ||
+    !pet.raca.trim() ||
+    typeof pet.idade !== 'number' ||
+    !Number.isFinite(pet.idade) ||
+    pet.idade < 0 ||
+    pet.idade > 40 ||
+    typeof pet.peso !== 'number' ||
+    !Number.isFinite(pet.peso) ||
+    pet.peso <= 0 ||
+    pet.peso > 300
+  ) {
+    return Response.json(
+      { erro: 'Perfil do pet inválido.' },
+      { status: 400 }
+    );
+  }
 
   let pontuacao = 0;
   const fatores: string[] = [];
@@ -62,12 +114,12 @@ export async function POST(request: Request) {
     'boxer',
   ];
 
-  if (racasBraquicefalicas.some((item) => raca.includes(item))) {
+  if (temperatura >= 29 && racasBraquicefalicas.some((item) => raca.includes(item))) {
     pontuacao += 2;
     fatores.push('raça com maior sensibilidade ao calor');
   }
 
-  if (pet.idade >= 8) {
+  if (temperatura >= 29 && pet.idade >= 8) {
     pontuacao += 1;
     fatores.push('animal em faixa etária de maior atenção');
   }
@@ -113,6 +165,6 @@ export async function POST(request: Request) {
     recomendacao,
     fatores,
     analisadoEm: new Date().toISOString(),
-    modelo: 'VitalPet CareSense AI v1',
+    modelo: 'VitalPet CareSense AI v2',
   });
 }
