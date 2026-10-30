@@ -885,3 +885,7 @@ A solução é composta por:
 Projeto acadêmico desenvolvido para o **Challenge Clyvo — FIAP**.
 
 O VitalPet CareSense demonstra como **IoT, desenvolvimento web e análise inteligente baseada em regras** podem trabalhar em conjunto para criar uma solução de monitoramento preventivo voltada ao bem-estar animal.
+
+## Vídeo de Apresentação — Sprint 4
+
+[Assistir no YouTube](https://youtu.be/aasAX4S92pk)
